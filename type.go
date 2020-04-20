@@ -37,4 +37,10 @@ type Recorder interface {
 	IsDone(req Request) bool
 	// 將任務設定已完成
 	Done(key interface{})
+	// 讀取記錄
+	Load(filePath string) (map[interface{}]bool, error)
+	// 儲存記錄
+	Save(filePath string) error
+	// 設定 json unmarshal/marshal function for Load & Save function
+	JsonRWSetup(func([]byte) (map[interface{}]bool, error), func(map[interface{}]bool) ([]byte, error))
 }
