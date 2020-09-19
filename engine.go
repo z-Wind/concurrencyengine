@@ -151,7 +151,7 @@ func (e *ConcurrencyEngine) createWorker(parseResultChan chan<- ParseResult, s S
 func worker(req Request) ParseResult {
 	parseResult, err := req.ParseFunc(req)
 	if err != nil {
-		ELog.Printf("worker: req.ParseFunc: err:%s\n", err)
+		ELog.Printf("worker: req.ParseFunc: err: %s\n", err)
 		ELog.LPrintf("%+v\n", parseResult)
 		return parseResult
 	}
