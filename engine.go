@@ -26,9 +26,6 @@ type ConcurrencyEngine struct {
 	Ctx         context.Context
 	NumTasks    int
 	Recorder    Recorder
-
-	IsProcessed func(interface{}) bool
-	isDone      func(interface{}) bool
 }
 
 // Run 開始運作
