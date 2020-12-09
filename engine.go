@@ -12,7 +12,7 @@ var ELog Log
 // reqToKey convert request to mapping key
 func New(ctx context.Context, workerNum int, reqToKey func(Request) interface{}) *ConcurrencyEngine {
 	return &ConcurrencyEngine{
-		Scheduler:   &QueueScheduler{Ctx: ctx},
+		Scheduler:   NewQueueScheduler(ctx),
 		WorkerCount: workerNum,
 		Ctx:         ctx,
 		Recorder:    NewRecord(reqToKey),
@@ -111,12 +111,11 @@ func (e *ConcurrencyEngine) Run(seeds ...Request) chan interface{} {
 
 func (e *ConcurrencyEngine) createWorker(parseResultChan chan<- ParseResult, s Scheduler) {
 	requestChan := make(chan Request)
+	s.WorkerArrange(requestChan)
 
 	go func() {
 		// 用 queue 先存起來，防止阻塞
 		var parseResultQ []ParseResult
-
-		s.WorkerReady(requestChan)
 
 		for {
 			var activeResult ParseResult

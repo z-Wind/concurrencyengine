@@ -24,9 +24,14 @@ type ParseResult struct {
 type Scheduler interface {
 	// 提交任務
 	Submit(Request)
+	// 將 worker 排進序列,初始化用
+	WorkerArrange(chan Request)
 	// 將空閒的 worker 排進序列
 	WorkerReady(chan Request)
+	// 執行調配
 	Run()
+	// 設定 worker/sec
+	SetLimit(r float64)
 }
 
 // Recorder 記錄工作

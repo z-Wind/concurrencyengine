@@ -2,13 +2,22 @@ package concurrencyengine
 
 import (
 	"context"
+
+	"golang.org/x/time/rate"
 )
+
+func NewQueueScheduler(ctx context.Context) *QueueScheduler {
+	lim := rate.NewLimiter(rate.Inf, 1)
+
+	return &QueueScheduler{Ctx: ctx, Limit: lim}
+}
 
 // QueueScheduler 分配 request 給 worker
 type QueueScheduler struct {
 	workerChan  chan chan Request
 	requestChan chan Request
 	Ctx         context.Context
+	Limit       *rate.Limiter
 }
 
 // Submit 提交任務
@@ -21,14 +30,29 @@ func (s *QueueScheduler) Submit(r Request) {
 	}
 }
 
-// WorkerReady 將空閒的 worker 排進序列
-func (s *QueueScheduler) WorkerReady(w chan Request) {
+// SetLimit 設定 worker/sec, 預設為 rate.Inf
+func (s *QueueScheduler) SetLimit(r float64) {
+	s.Limit.SetLimit(rate.Limit(r))
+}
+
+// WorkerArrange 將 worker 排進序列
+func (s *QueueScheduler) WorkerArrange(w chan Request) {
 	select {
 	case s.workerChan <- w:
 		ELog.LPrintf("%-30s s.workerChan <- worker(%v)\n", "Scheduler.WorkerReady", w)
 	case <-s.Ctx.Done():
 		ELog.LPrintf("%-30s QueueScheduler.WorkerReady.Done\n", "Scheduler.WorkerReady")
 	}
+}
+
+// WorkerReady 將空閒的 worker 排進序列
+func (s *QueueScheduler) WorkerReady(w chan Request) {
+	err := s.Limit.Wait(s.Ctx)
+	if err != nil {
+		ELog.Fatalf("WorkerReady: s.Limit.Wait: err: %s\n", err)
+	}
+
+	s.WorkerArrange(w)
 }
 
 // Run 執行調配
