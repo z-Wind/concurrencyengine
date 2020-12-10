@@ -60,6 +60,7 @@ func (e *ConcurrencyEngine) Run(seeds ...Request) chan interface{} {
 			if e.NumTasks == 0 && len(dataQ) == 0 {
 				ELog.Printf("Finish =============================================\n")
 				close(dataChan)
+				return
 			}
 
 			select {
